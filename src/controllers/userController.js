@@ -1,0 +1,61 @@
+import User from "../models/userModel.js";
+import AppError from "../util/appError.js";
+
+export const getUser = async (req, res, next) => {
+	const user = await User.findOne({ _id: req.user._id, active: true });
+
+	if (!user) {
+		return next(new AppError("No user found!", 404));
+	}
+
+	res.status(200).json({
+		status: "success",
+		data: { user },
+	});
+};
+
+export const updateUser = async (req, res, next) => {
+	const filteredBody = filterObj(req.body, "name", "email");
+
+	if (req.body.password) {
+		return next(new AppError("You cannot update password here!", 400));
+	}
+
+	if (filteredBody.email !== undefined) {
+		if (!filteredBody.email || filteredBody.email.trim() === "") {
+			return next(new AppError("Email cannot be empty!", 400));
+		}
+
+		if (!isEmail(filteredBody.email)) {
+			return next(new AppError("Invalid email!", 400));
+		}
+
+		const existingUser = await User.findOne({
+			email: filteredBody.email,
+			_id: { $ne: req.user._id },
+		});
+
+		if (existingUser) {
+			return next(new AppError("Email is already in use by another user", 400));
+		}
+	}
+
+	if (filteredBody.name !== undefined) {
+		if (!filteredBody.name || filteredBody.name.trim() === "") {
+			return next(new AppError("Name cannot be empty!", 400));
+		}
+	}
+
+	const user = await User.findOneAndUpdate({ _id: req.user._id }, filteredBody, {
+		new: true,
+		runValidators: true,
+	}).select("-_id -__v -role");
+
+	res.status(201).json({
+		status: "success",
+		message: "Account updated successfully",
+		data: {
+			user,
+		},
+	});
+};
