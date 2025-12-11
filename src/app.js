@@ -7,6 +7,7 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import morgan from "morgan";
 import errorHandler from "./middlewares/errorController.js";
+import urlRouter from "./routes/urlRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import AppError from "./util/appError.js";
 
@@ -26,6 +27,7 @@ if (process.env.NODE_ENV.trim() === "development") {
 }
 
 app.use("/api/user", userRouter);
+app.use("/api/url", urlRouter);
 
 app.use((req, _res, next) => {
 	next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
