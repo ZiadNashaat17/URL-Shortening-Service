@@ -26,6 +26,8 @@ if (process.env.NODE_ENV.trim() === "development") {
 	app.use(morgan("dev"));
 }
 
+app.get("/favicon.ico", (_req, res) => res.status(204).end());
+
 app.use("/api/user", userRouter);
 app.use("/api/url", urlRouter);
 
